@@ -69,6 +69,82 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
     </script>
+    <style>
+    h2 {
+        color: Black;
+        margin-bottom: 20px;
+        border-bottom: 2px solid Black;
+        padding-bottom: 10px;
+        background-color: LightGray;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .fixed-h2 {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: light gray;
+    }
+
+    .user-list-column {
+        text-align: center;
+        border: 2px solid Black;
+        background-color: light gray;
+        overflow-y: auto;
+        max-height: 300px;
+    }
+
+    .user-details-column,
+    .actions-column {
+        text-align: center;
+        border: 2px solid Black;
+        background-color: light gray;
+    }
+
+    .user-list-column table {
+        width: 100%;
+    }
+
+    .user-list-column td {
+        padding: 10px;
+    }
+
+    .user-list-column td:hover {
+        background-color: LightGray;
+        cursor: pointer;
+    }
+
+    .user-details-column,
+    .actions-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .action-images img {
+        max-width: 100%;
+        height: auto;
+        width: 100%;
+        object-fit: cover;
+        border: 1px solid Black;
+        border-radius: 8px;
+    }
+
+    .user-name {
+        font-size: 20px;
+    }
+
+    #userDetails {
+        font-size: 20px;
+    }
+
+    .selected-user {
+        background-color: LightGray;
+        font-weight: bold;
+    }
+    </style>
+
 </head>
 
 <body>
@@ -183,46 +259,44 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
 
 
-        <!-- Display user details columns -->
+        <!-- Display user details columns (In Web View) -->
 
-        <div class="row">
-            <div class="col-md-3">
-                <h2>User List</h2>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
+        <div class="container my-5">
+            <div class="row">
+                <div class="col-md-4 user-list-column">
+                    <h2 class="fixed-h2">User List</h2>
+                    <table class="table">
+                        <tbody>
+                            <?php
                         // Fetch and display user names in the first column
                         $query = "SELECT name FROM users";
                         $result = $connection->query($query);
 
                         if ($result->num_rows > 0) {
                             while ($row = $result->fetch_assoc()) {
-                                echo "<tr><td class='user-name'>$row[name]</td></tr>";
+                                $userName = $row["name"];
+                                echo "<tr data-username='$userName'><td class='user-name'>$userName</td></tr>";
                             }
                         }
                         ?>
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
 
-            <!-- Display user details in the second column -->
-            <div class="col-md-6">
-                <h2>User Details</h2>
-                <div id="userDetails"></div>
-            </div>
+                <!-- Display user details in the second column -->
+                <div class="col-md-4 user-details-column">
+                    <h2>User Details</h2>
+                    <div id="userDetails" class="mt-5"></div>
+                </div>
 
-            <!-- Display actions images in the third column -->
-            <div class="col-md-3">
-                <h2>Actions</h2>
-                <div id="actionImages" class="action-images"></div>
+                <!-- Display actions images in the third column -->
+                <div class="col-md-4 actions-column">
+                    <h2>Actions</h2>
+                    <div id="actionImages" class="action-images mt-5"></div>
+                    <div id="actionName" class="mt-3"></div>
+                </div>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -230,6 +304,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
         const userNames = document.querySelectorAll(".user-name");
         const userDetailsDiv = document.getElementById("userDetails");
         const actionImagesDiv = document.getElementById("actionImages");
+        const actionNameDiv = document.getElementById("actionName");
 
         // Function to fetch user details
         function fetchUserDetails(name) {
@@ -248,9 +323,11 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
                         const actionImagesDiv = document.getElementById("actionImages");
                         actionImagesDiv.innerHTML =
                             `<img src='${data.image_path}' alt='${data.actions}' class='action-image' />`;
+                        actionNameDiv.textContent = `${data.actions}`;
                     } else {
                         userDetailsDiv.innerHTML = "User not found";
                         actionImagesDiv.innerHTML = "Not Found";
+                        actionNameDiv.textContent = "Not Found";
                     }
                 })
                 .catch((error) => console.error("Error fetching user details:", error));
@@ -260,6 +337,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
         if (userNames.length > 0) {
             const defaultUser = userNames[0].textContent;
             fetchUserDetails(defaultUser);
+            userNames[0].parentNode.classList.add('selected-user');
         }
 
         // Click event for other users
@@ -267,6 +345,9 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
             userName.addEventListener("click", function() {
                 const name = userName.textContent;
                 fetchUserDetails(name);
+                userNames.forEach(row => row.parentNode.classList.remove('selected-user'));
+
+                userName.parentNode.classList.add('selected-user');
             });
         });
     });
