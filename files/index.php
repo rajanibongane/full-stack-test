@@ -64,6 +64,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Users</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
@@ -100,6 +101,9 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
         text-align: center;
         border: 2px solid Black;
         background-color: light gray;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .user-list-column table {
@@ -113,13 +117,6 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
     .user-list-column td:hover {
         background-color: LightGray;
         cursor: pointer;
-    }
-
-    .user-details-column,
-    .actions-column {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
     }
 
     .action-images img {
@@ -142,6 +139,50 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
     .selected-user {
         background-color: LightGray;
         font-weight: bold;
+    }
+
+    #prevArrow{
+        font-size: 24px;
+        cursor: pointer;
+        color: black;
+        margin-right: 120px;
+    }
+    #nextArrow {
+        font-size: 24px;
+        cursor: pointer;
+        color: black;
+        margin-left: 120px;
+    }
+
+    #prevArrow:hover,
+    #nextArrow:hover {
+        color: #007bff;
+    }
+
+
+    .user-list-column table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .user-list-column td {
+        padding: 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    #userDetailsContainer {
+        overflow-x: hidden;
+    }
+
+    #userDetailsWrapper {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+    }
+
+    #userDetailsColumn {
+        width: 100%;
     }
     </style>
 
@@ -286,7 +327,15 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
                 <!-- Display user details in the second column -->
                 <div class="col-md-4 user-details-column">
                     <h2>User Details</h2>
-                    <div id="userDetails" class="mt-5"></div>
+                    <div id="userDetailsContainer">
+                        <div id="userDetailsWrapper">
+                            <div id="userDetails" class="mt-5"></div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span id="prevArrow" class="material-icons">chevron_left </span>
+                        <span id="nextArrow" class="material-icons">chevron_right </span>
+                    </div>
                 </div>
 
                 <!-- Display actions images in the third column -->
@@ -305,6 +354,9 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
         const userDetailsDiv = document.getElementById("userDetails");
         const actionImagesDiv = document.getElementById("actionImages");
         const actionNameDiv = document.getElementById("actionName");
+        const nextButton = document.getElementById("nextButton");
+
+        let currentIndex = 0;
 
         // Function to fetch user details
         function fetchUserDetails(name) {
@@ -333,23 +385,86 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
                 .catch((error) => console.error("Error fetching user details:", error));
         }
 
+        // Function to update user details based on index
+        function updateUserDetails() {
+            const name = userNames[currentIndex].textContent;
+            fetchUserDetails(name);
+
+            userNames.forEach((row) => row.parentNode.classList.remove("selected-user"));
+            userNames[currentIndex].parentNode.classList.add("selected-user");
+        }
+
         // Click event for the first user by default
         if (userNames.length > 0) {
-            const defaultUser = userNames[0].textContent;
-            fetchUserDetails(defaultUser);
-            userNames[0].parentNode.classList.add('selected-user');
+            updateUserDetails();
         }
 
         // Click event for other users
-        userNames.forEach((userName) => {
+        userNames.forEach((userName, index) => {
             userName.addEventListener("click", function() {
-                const name = userName.textContent;
-                fetchUserDetails(name);
-                userNames.forEach(row => row.parentNode.classList.remove('selected-user'));
-
-                userName.parentNode.classList.add('selected-user');
+                currentIndex = index;
+                updateUserDetails();
             });
         });
+
+        const userDetailsContainer = document.getElementById("userDetailsContainer");
+        const userDetailsWrapper = document.getElementById("userDetailsWrapper");
+        const userDetailsColumn = document.getElementById("userDetailsColumn");
+
+
+        // Click event for the "Next" button
+        document.getElementById("nextArrow").addEventListener("click", function() {
+            currentIndex = (currentIndex + 1) % userNames.length;
+            userDetailsDiv.style.opacity = "0";
+            setTimeout(() => {
+                updateUserDetails();
+                userDetailsDiv.style.opacity = "1";
+            }, 300);
+        });
+
+        // Click event for the "Previous" button
+        document.getElementById("prevArrow").addEventListener("click", function() {
+            currentIndex = (currentIndex - 1 + userNames.length) % userNames.length;
+            userDetailsDiv.style.opacity = "0";
+            setTimeout(() => {
+                updateUserDetails();
+                userDetailsDiv.style.opacity = "1";
+            }, 300);
+        });
+
+        // Click event for the "Next" button
+        nextButton.addEventListener("click", function() {
+            currentIndex = (currentIndex + 1) % userNames.length;
+            const nextUser = userNames[currentIndex].textContent;
+            fetchUserDetails(nextUser);
+            userNames.forEach(row => row.parentNode.classList.remove('selected-user'));
+
+            userNames[currentIndex].parentNode.classList.add('selected-user');
+        });
+
+        // Function to show previous user details
+        function showPrevUserDetails() {
+            currentIndex = (currentIndex - 1 + userNames.length) % userNames.length;
+            const prevUser = userNames[currentIndex].textContent;
+            fetchUserDetails(prevUser);
+
+            userNames.forEach((row) => row.parentNode.classList.remove("selected-user"));
+
+            userNames[currentIndex].parentNode.classList.add("selected-user");
+            userDetailsWrapper.style.transform = `translateX(${currentIndex * -100}%)`;
+        }
+
+        // Function to show next user details
+        function showNextUserDetails() {
+            currentIndex = (currentIndex + 1) % userNames.length;
+            const nextUser = userNames[currentIndex].textContent;
+            fetchUserDetails(nextUser);
+
+            userNames.forEach((row) => row.parentNode.classList.remove("selected-user"));
+
+            userNames[currentIndex].parentNode.classList.add("selected-user");
+            userDetailsWrapper.style.transform = `translateX(${currentIndex * -100}%)`;
+        }
     });
     </script>
     </div>
