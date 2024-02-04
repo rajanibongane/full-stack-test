@@ -96,8 +96,8 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
         max-height: 300px;
     }
 
-    .user-details-column,
-    .actions-column {
+    .user-details-column {
+        background: none;
         text-align: center;
         border: 2px solid Black;
         background-color: light gray;
@@ -106,12 +106,13 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
         align-items: center;
     }
 
-    .user-list-column table {
-        width: 100%;
-    }
-
-    .user-list-column td {
-        padding: 10px;
+    .actions-column {
+        text-align: center;
+        border: 2px solid Black;
+        background-color: light gray;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .user-list-column td:hover {
@@ -141,12 +142,13 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
         font-weight: bold;
     }
 
-    #prevArrow{
+    #prevArrow {
         font-size: 24px;
         cursor: pointer;
         color: black;
         margin-right: 120px;
     }
+
     #nextArrow {
         font-size: 24px;
         cursor: pointer;
@@ -183,6 +185,33 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
 
     #userDetailsColumn {
         width: 100%;
+    }
+
+    @media only screen and (max-width: 767px) {
+
+        .user-details-column {
+            position: relative;
+            background-repeat: no-repeat;
+            background-size: 100%;
+            overflow: hidden;
+            padding: 0;
+            height: 400px;
+        }
+
+        .user-details-column h2 {
+            margin-top: 0;
+        }
+
+        .actions-column {
+            display: none;
+        }
+    }
+
+    @media only screen and (min-width: 767px) {
+        .user-details-column {
+            background-image: none !important;
+        }
+
     }
     </style>
 
@@ -325,7 +354,11 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
 
                 <!-- Display user details in the second column -->
-                <div class="col-md-4 user-details-column">
+                <div class="col-md-4 user-details-column background-image-hidden"
+                    style="position: relative;background-repeat: no-repeat;">
+                    <div class="background-image-layer"
+                        style="background-image: url(' '); background-repeat: no-repeat; background-size: cover; opacity: 0.5;">
+                    </div>
                     <h2>User Details</h2>
                     <div id="userDetailsContainer">
                         <div id="userDetailsWrapper">
@@ -336,6 +369,7 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
                         <span id="prevArrow" class="material-icons">chevron_left </span>
                         <span id="nextArrow" class="material-icons">chevron_right </span>
                     </div>
+
                 </div>
 
                 <!-- Display actions images in the third column -->
@@ -355,6 +389,8 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
         const actionImagesDiv = document.getElementById("actionImages");
         const actionNameDiv = document.getElementById("actionName");
         const nextButton = document.getElementById("nextButton");
+        const userDetailColumn = document.querySelector(".user-details-column");
+
 
         let currentIndex = 0;
 
@@ -376,6 +412,10 @@ if ( $_SERVER['REQUEST_METHOD'] == 'POST') {
                         actionImagesDiv.innerHTML =
                             `<img src='${data.image_path}' alt='${data.actions}' class='action-image' />`;
                         actionNameDiv.textContent = `${data.actions}`;
+
+                        // Set background image for user-details-column
+                        userDetailColumn.style.backgroundImage = `url('${data.image_path}')`;
+
                     } else {
                         userDetailsDiv.innerHTML = "User not found";
                         actionImagesDiv.innerHTML = "Not Found";
